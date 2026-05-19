@@ -1,0 +1,525 @@
+{
+  "info": {
+    "name": "Кото-путешествия API",
+    "description": "Тестирование REST API сервиса «Кото-путешествия» в рамках проекта Kittygram. Покрывает регистрацию, JWT-аутентификацию, управление котами, местами назначения и путешествиями, включая отрицательные сценарии (403, 400).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cat_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dest_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "travel_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Регистрация пользователя",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/users/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "users",
+            ""
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"traveler\",\n  \"password\": \"Travel1234!\",\n  \"re_password\": \"Travel1234!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "pm.test('username в ответе', () => pm.expect(pm.response.json().username).to.eql('traveler'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Получение JWT-токена",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/jwt/create/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "jwt",
+            "create",
+            ""
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"traveler\",\n  \"password\": \"Travel1234!\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('Есть access-токен', () => pm.expect(json.access).to.be.a('string'));",
+              "pm.collectionVariables.set('token', json.access);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Создание кота",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/cats/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "cats",
+            ""
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Путешественник\",\n  \"color\": \"Gray\",\n  \"birth_year\": 2021\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('Поле age рассчитано', () => pm.expect(json.age).to.be.a('number'));",
+              "pm.test('owner установлен', () => pm.expect(json.owner).to.be.a('number'));",
+              "pm.collectionVariables.set('cat_id', json.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Создание места назначения",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/destinations/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "destinations",
+            ""
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Амстердам\",\n  \"country\": \"Нидерланды\",\n  \"description\": \"Город каналов и котов\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('Название совпадает', () => pm.expect(json.name).to.eql('Амстердам'));",
+              "pm.collectionVariables.set('dest_id', json.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Создание путешествия",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/travels/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            ""
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cat\": {{cat_id}},\n  \"destination_id\": {{dest_id}},\n  \"departure_date\": \"2026-08-01\",\n  \"arrival_date\": \"2026-08-07\",\n  \"status\": \"planned\",\n  \"notes\": \"Первое путешествие Путешественника\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('201 Created', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('Статус planned', () => pm.expect(json.status).to.eql('planned'));",
+              "pm.test('Вложен destination', () => pm.expect(json.destination.name).to.eql('Амстердам'));",
+              "pm.test('Вложен cat_detail', () => pm.expect(json.cat_detail).to.be.an('object'));",
+              "pm.collectionVariables.set('travel_id', json.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Список всех путешествий",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/travels/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            ""
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('Пагинация: count и results', () => {",
+              "  pm.expect(json).to.have.property('count');",
+              "  pm.expect(json.results).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Фильтрация по статусу planned",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/travels/?status=planned",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            ""
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "planned"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const results = pm.response.json().results;",
+              "pm.test('Все записи со статусом planned', () => {",
+              "  results.forEach(t => pm.expect(t.status).to.eql('planned'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Мои путешествия GET /travels/my/",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/travels/my/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            "my",
+            ""
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('Есть results', () => pm.expect(json.results).to.be.an('array'));",
+              "pm.test('Есть хотя бы одно путешествие', () => pm.expect(json.count).to.be.above(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. [Негатив] /travels/my/ без токена → 401",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/travels/my/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            "my",
+            ""
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('401 Unauthorized (не 500)', () => pm.response.to.have.status(401));",
+              "pm.test('Есть поле detail', () => pm.expect(pm.response.json()).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. [Негатив] Создание путешествия для чужого кота → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/travels/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            ""
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cat\": 1,\n  \"destination_id\": {{dest_id}},\n  \"departure_date\": \"2026-09-01\",\n  \"status\": \"planned\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 Forbidden', () => pm.response.to.have.status(403));",
+              "pm.test('Сообщение о запрете', () => {",
+              "  pm.expect(pm.response.json().detail).to.include('своих котов');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. [Негатив] Некорректные даты arrival < departure → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/travels/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            ""
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cat\": {{cat_id}},\n  \"destination_id\": {{dest_id}},\n  \"departure_date\": \"2026-08-10\",\n  \"arrival_date\": \"2026-08-05\",\n  \"status\": \"planned\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+              "pm.test('Ошибка про дату', () => {",
+              "  const errors = pm.response.json().non_field_errors;",
+              "  pm.expect(errors[0]).to.include('раньше даты отправления');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. [Негатив] Удаление чужого путешествия → 403",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/travels/1/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "travels",
+            "1",
+            ""
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 или 404', () => {",
+              "  pm.expect([403, 404]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
