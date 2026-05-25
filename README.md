@@ -190,31 +190,6 @@ curl -s -X POST http://127.0.0.1:8000/api/travels/ \
 
 ---
 
-## Автотесты
-
-Автоматизированные тесты в текущей версии не реализованы. Функциональность проверяется вручную через Postman-коллекцию и curl-команды (см. раздел «Проверка API»).
-
-Направления для развития: pytest-django, тесты на права доступа (403), валидацию дат и фильтрацию.
-
----
-
-## API-эндпоинты
-
-| Метод | URL | Права | Описание |
-|-------|-----|-------|----------|
-| POST | `/api/auth/users/` | AllowAny | Регистрация |
-| POST | `/api/auth/jwt/create/` | AllowAny | Получение JWT-токена |
-| POST | `/api/auth/jwt/refresh/` | AllowAny | Обновление токена |
-| GET / POST | `/api/cats/` | GET — все, POST — авториз. | Список котов / создание |
-| GET / PUT / DELETE | `/api/cats/{id}/` | PUT/DELETE — только владелец | Управление котом |
-| GET / POST | `/api/achievements/` | IsAuthenticated | Достижения |
-| GET / POST | `/api/destinations/` | GET — все, POST — авториз. | Места назначения |
-| GET / POST | `/api/travels/` | GET — все, POST — авториз. | Путешествия |
-| GET | `/api/travels/my/` | IsAuthenticated | Путешествия своих котов |
-| GET / PUT / DELETE | `/api/travels/{id}/` | PUT/DELETE — владелец кота | Управление путешествием |
-| GET | `/swagger/` | AllowAny | Swagger UI |
-| GET | `/redoc/` | AllowAny | Redoc |
-
 ## Технологический стек
 
 Python 3.10 · Django 3.2 · Django REST Framework 3.12 · SimpleJWT · djoser · drf-yasg · django-filter · PostgreSQL 14 · Docker · nginx · gunicorn
