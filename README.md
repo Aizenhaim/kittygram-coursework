@@ -114,8 +114,3 @@ docker-compose exec web python load_test_data.py
 docker-compose down
 ```
 
----
-
-## Технологический стек
-
-Python 3.10 · Django 3.2 · Django REST Framework 3.12 · SimpleJWT · djoser · drf-yasg · django-filter · PostgreSQL 14 · Docker · nginx · gunicorn
